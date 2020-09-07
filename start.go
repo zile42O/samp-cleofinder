@@ -62,13 +62,14 @@ func StartScan() {
 	ScannedFiles := 0
 	var found_files []string
 	//Find current proccess path and volume name
-	path, err := os.Getwd()
+	/*path, err := os.Getwd()
 	if err != nil {
 	    log.Println(err)
-	}
-	//Start searching for file samp.exe
+	}*/
+	//Start searching for file samp.exe filepath.VolumeName(path)
 	color.Blue("Searching for 'samp.exe', please wait...")
-	output, err := exec.Command("where", "/R", filepath.VolumeName(path), "\\", "samp.exe").Output()
+	//output, err := exec.Command("where", "/R", filepath.VolumeName(path), "\\", "samp.exe").Output()
+	output, err := exec.Command("cmd.exe", "/c", "dir \\*samp.exe /s /b").Output()
 	if err != nil {
 		color.Red("An error occurred, 'samp.exe' may not exist in this disk volume | %s", err)
 		color.Yellow("The program must be in disk volume")
@@ -121,7 +122,7 @@ func StartScan() {
 	fmt.Println("\n----------------------------------------------------")
 	color.Blue("Scanning took:")
 	color.Yellow("%s", elapsed)
-	time.Sleep(15 * time.Second)
+	time.Sleep(120 * time.Second)
 }
 
 func stringInSlice(v string, ss []string) bool {
