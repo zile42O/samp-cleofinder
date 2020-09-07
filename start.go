@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 	"os/exec"
+	"regexp"
 )
 
 func main() {
@@ -52,7 +53,7 @@ func main() {
 		StartScan()	
 	} else {
 		color.Red("You have declined the policy, thus interrupting the software process, please wait..")
-		time.Sleep(2 * time.Second)
+		time.Sleep(3 * time.Second)
 		return
 	}
 }
@@ -71,43 +72,40 @@ func StartScan() {
 	if err != nil {
 		color.Red("An error occurred, 'samp.exe' may not exist in this disk volume | %s", err)
 		color.Yellow("The program must be in disk volume")
+		time.Sleep(3 * time.Second)
 		return
 	}
-	//Remove samp.exe from link
-	directory := filepath.Dir(string(output))
-	//Clear console
-	os.Stdout.Write([]byte{0x1B, 0x5B, 0x33, 0x3B, 0x4A, 0x1B, 0x5B, 0x48, 0x1B, 0x5B, 0x32, 0x4A})
-	//Scan starting..
- 	color.Green("Scan running successfully, please wait ..")
- 	time.Sleep(3 * time.Second)
- 	color.Blue("Scan directory is %s", directory)
- 	color.Blue("Please wait...")
- 	time.Sleep(3 * time.Second)
- 	//Clear console
-	os.Stdout.Write([]byte{0x1B, 0x5B, 0x33, 0x3B, 0x4A, 0x1B, 0x5B, 0x48, 0x1B, 0x5B, 0x32, 0x4A})
-	//Scan started!
-	//Time for scanning
+	///
 	start := time.Now()
-	//Work
-	//Extensions
-	exts := []string{".cs", ".cleo", ".asi"}
-	//Listing
-	err = filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
-		//Checking files
-		if stringInSlice(filepath.Ext(path), exts) {
-			found_files = append(found_files, path)
-			FoundedFiles++
-		} else {
-			color.Blue("Scanning: %s", path)
-			ScannedFiles++
-		} 
-		return nil
-	})
-	if err != nil {
-		panic(err)
-	}
-	for _, file := range found_files {		
-		color.Red("\n> %s\n", file)
+	os.Stdout.Write([]byte{0x1B, 0x5B, 0x33, 0x3B, 0x4A, 0x1B, 0x5B, 0x48, 0x1B, 0x5B, 0x32, 0x4A})
+	var myReg = regexp.MustCompile(`(?P<filepath>(?P<root>[/]?)(?P<rest_of_the_path>.+))`)
+	color.Green("Scan running successfully, please wait ..")
+	for i, match := range myReg.FindAllString(string(output), -1) {
+		if i != -1 {
+			group := myReg.FindStringSubmatch(match)
+			directory := filepath.Dir(group[0])	
+			color.Blue("Scan directory is %s", directory)
+			time.Sleep(2 * time.Second)
+			exts := []string{".cs", ".cleo", ".asi"}
+			//Listing
+			err = filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
+				//Checking files
+				if stringInSlice(filepath.Ext(path), exts) {
+					found_files = append(found_files, path)
+					FoundedFiles++
+				} else {
+					color.Blue("Scanning: %s", path)
+					ScannedFiles++
+				} 
+				return nil
+			})
+			if err != nil {
+				panic(err)
+			}
+			for _, file := range found_files {		
+				color.Red("\n> %s\n", file)
+			}
+		}	
 	}
 	//Total	
 	if FoundedFiles > 0 {
@@ -123,6 +121,7 @@ func StartScan() {
 	fmt.Println("\n----------------------------------------------------")
 	color.Blue("Scanning took:")
 	color.Yellow("%s", elapsed)
+	time.Sleep(15 * time.Second)
 }
 
 func stringInSlice(v string, ss []string) bool {
